@@ -289,9 +289,9 @@ int main(int argc, char** argv, MPI_Comm comm, int shrMemPID)
 #ifdef GALACTICS
 		ADDUSAGE("     --milkyway #       use Milky Way model with # particles per proc");
 		ADDUSAGE("     --mwfork   #       fork Milky Way generator into # processes [" << nMWfork << "]");
-		ADDUSAGE("     --seed     #       seed to use for the Milky Way  [" << galSeed  << "]");
     ADDUSAGE("     --taskvar  #       variable name to obtain task id [for randoms seed] before MPI_Init. \n");
 #endif
+		ADDUSAGE("     --seed     #       seed to use for the Milky Way or other IC generators [" << galSeed  << "]");
     ADDUSAGE("     --plummer  #       use Plummer model with # particles per proc");
 		ADDUSAGE("     --sphere   #       use spherical model with # particles per proc");
 		ADDUSAGE("     --cube     #       use cube model with # particles per proc");
@@ -317,8 +317,8 @@ int main(int argc, char** argv, MPI_Comm comm, int shrMemPID)
     opt.setOption( "milkyway");
     opt.setOption( "mwfork");
     opt.setOption( "taskvar");
-    opt.setOption( "seed");
 #endif
+    opt.setOption( "seed");
     opt.setOption( "sphere");
     opt.setOption( "cube");
     opt.setOption( "dev" );
@@ -568,7 +568,14 @@ int main(int argc, char** argv, MPI_Comm comm, int shrMemPID)
 
   double tStartup = tree->get_time();
 
+// GL if seed is not set, generate seed possibly used in PLUMMER and make sure it is written to log
+    int ICseed = galSeed;
+    if (ICseed == 0){
+        srand (time(NULL));
+        ICseed = rand();
+    }
 
+    
   if (procId == 0)
   {
     //Note can't use LOGF here since MPI isn't initialized yet
@@ -600,6 +607,7 @@ int main(int argc, char** argv, MPI_Comm comm, int shrMemPID)
       cerr << "[INIT]\tRuntime logging is DISABLED \n";
 #endif
     cerr << "[INIT]\tDirect gravitation is " << (direct ? "ENABLED" : "DISABLED") << endl;
+    cerr << "[INIT]\tICseed=" << ICseed << endl;
 #if USE_OPENGL
     cerr << "[INIT]\tTglow = " << TstartGlow << endl;
     cerr << "[INIT]\tdTglow = " << dTstartGlow << endl;
@@ -743,7 +751,7 @@ int main(int argc, char** argv, MPI_Comm comm, int shrMemPID)
   }
   else if(nPlummer >= 0)
   {
-    generatePlummerModel(bodyPositions, bodyVelocities, bodyIDs, procId, nProcs, nPlummer);  // GL assume no generation of accelerations
+    generatePlummerModel(bodyPositions, bodyVelocities, bodyIDs, procId, nProcs, nPlummer, ICseed);  // GL assume no generation of accelerations
   }
   else if (nSphere >= 0)
   {

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
 #include "plummer.h"
 //#include "disk_shuffle.h"
 
@@ -263,11 +267,12 @@ struct DiskShuffle
                             vector<ullong>  &bodyIDs,
                             const int        procId,
                             const int        nProcs,
-                            const int        nPlummer)
+                            const int        nPlummer,
+                           const int seed)
   {
     if (procId == 0) printf("Using Plummer model with n= %d per process \n", nPlummer);
     assert(nPlummer > 0);
-    const int seed = 19810614 + procId;
+//    const int seed = 19810614 + procId;
     const Plummer m(nPlummer, procId, seed);
     bodyPositions.resize(nPlummer);
     bodyVelocities.resize(nPlummer);
