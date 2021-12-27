@@ -1,2 +1,5 @@
+RUNS/
 .ipynb_checkpoints/
+CMakeFiles/
+CMakeCache.txt
 **/gpuLog.log*
