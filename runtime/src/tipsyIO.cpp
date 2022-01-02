@@ -122,7 +122,7 @@ void tipsyIO::writeFile(real4 *bodyPositions, real4 *bodyVelocities, real4 *body
       if(allIds[i] >= DARKMATTERID)
       {
         //Set particle properties
-        dark_particleV2 d;
+        dark_particleV6 d;
         d.mass   = allPositions[i].w;
         d.pos[0] = allPositions[i].x;
         d.pos[1] = allPositions[i].y;
@@ -146,7 +146,7 @@ void tipsyIO::writeFile(real4 *bodyPositions, real4 *bodyVelocities, real4 *body
       if(allIds[i] < DARKMATTERID)
       {
         //Set particle properties
-        star_particleV2 s;
+        star_particleV6 s;
         s.mass = allPositions[i].w;
         s.pos[0] = allPositions[i].x;
         s.pos[1] = allPositions[i].y;
@@ -228,15 +228,22 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
 
       if(rank == 0) printf("File version: %d \n", h.version);
       int               fileFormatVersion = 0;
-      if(h.version & 2) fileFormatVersion = 2;
+      if(h.version & 2) {
+          fileFormatVersion = 2;
+          printf("no acc/pot \n");
+      }
       int               hasAcceleration = 0;
-      if(h.version & 4) hasAcceleration = 1;
+      if(h.version & 4) {
+          hasAcceleration = 1;
+          printf("has acc/pot \n");
+      }
+
+      
 
       ullong idummy;
       real4  positions;
       real4  velocity;
       real4  acceleration;
-
 
       //Rough divide
       uint        perProc = (NTotal / procs) /reduce_bodies_factor;
@@ -249,8 +256,8 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
 
       //Start reading
       int procCntr            = 1;
-      dark_particleV2 d;
-      star_particleV2 s;
+      dark_particleV6 d;
+      star_particleV6 s;
 
       for(int i=0; i < NTotal; i++)
       {
@@ -265,6 +272,10 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
           velocity.y        = d.vel[1];
           velocity.z        = d.vel[2];
           velocity.w        = 0;
+          acceleration.x    = d.acc[0];
+          acceleration.y    = d.acc[1];
+          acceleration.z    = d.acc[2];
+          acceleration.w    = d.epot;
           idummy            = d.getID();
 
           //Force compatibility with older 32bit ID files by mapping the particle IDs
@@ -284,6 +295,10 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
           velocity.y        = s.vel[1];
           velocity.z        = s.vel[2];
           velocity.w        = 0;
+          acceleration.x    = s.acc[0];
+          acceleration.y    = s.acc[1];
+          acceleration.z    = s.acc[2];
+          acceleration.w    = s.epot;
           idummy            = s.getID();
 
           //Force compatibility with older 32bit ID files by mapping the particle IDs
@@ -308,6 +323,7 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
 
         bodyPositions.push_back(positions);
         bodyVelocities.push_back(velocity);
+        bodyAccelerations.push_back(acceleration);
         bodiesIDs.push_back(idummy);
 
 
@@ -317,11 +333,12 @@ void tipsyIO::readFile(const MPI_Comm &mpiCommWorld,
     #ifdef USE_MPI
           if(bodyPositions.size() > perProc && procCntr != procs)
           {
-            ICSend(procCntr,  &bodyPositions[0], &bodyVelocities[0],  &bodiesIDs[0], (int)bodyPositions.size(),mpiCommWorld);
+            ICSend(procCntr,  &bodyPositions[0], &bodyVelocities[0],  &bodyAccelerations[0], &bodiesIDs[0], (int)bodyPositions.size(),mpiCommWorld);
             procCntr++;
 
             bodyPositions.clear();
             bodyVelocities.clear();
+            bodyAccelerations.clear();
             bodiesIDs.clear();
           }
     #endif
