@@ -270,7 +270,7 @@ struct DENSITY
       for(uint i = 0; i < nParticles; i++)
       {
         //Only use star particles
-        if(IDs[i] < DARKMATTERID)
+        if(IDs[i] >= DISKID)
         {
           //Top view
           int x = (int)floor((positions[i].x*xscale-xmin)/dx);
@@ -348,9 +348,9 @@ struct DISKSTATS
     #define CUBE(x)         ((x)*(x)*(x))
     #define MAX(x,y)        (((x)>(y))?(x):(y))
 
-    #define DARKMATTERID  3000000000000000000
-    #define DISKID        0
-    #define BULGEID       2000000000000000000
+    #define DARKMATTERID  0
+    #define DISKID        1000000000000000000
+    #define BULGEID       3000000000000000000
 
     const MPI_Comm &mpiCommWorld;
     const int procId, nProcs, nParticles;
@@ -557,7 +557,7 @@ struct DISKSTATS
         //Process the particles
         for(int j=0; j < nParticles; j++)
         {
-          if(IDs[j] >= 0 && IDs[j] < DARKMATTERID)
+          if(IDs[j] >= DISKID)
           {
             //Bluge+disk particles
             double R  =  sqrt(SQ(positions[j].x) + SQ(positions[j].y));
@@ -583,7 +583,7 @@ struct DISKSTATS
 
             offset = iMax;
             //Bulge only
-            if(IDs[j] >= BULGEID && IDs[j] < DARKMATTERID)
+            if(IDs[j] >= BULGEID)
             {
               perProcRes[NS  ][offset+i] += 1;
               perProcRes[SIGS][offset+i] += (float)positions[j].w;
@@ -597,7 +597,7 @@ struct DISKSTATS
             }//Bulge
             offset = 2*iMax;
             //Disk only
-            if(IDs[j] >= 0 && IDs[j] < BULGEID)
+            if(IDs[j] >= DISKID && IDs[j] < BULGEID)
             {
               perProcRes[NS  ][offset+i] += 1;
               perProcRes[SIGS][offset+i] += (float)positions[j].w;

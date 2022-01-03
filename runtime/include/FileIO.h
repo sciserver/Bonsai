@@ -80,12 +80,12 @@ static IDType lGetIDType(const long long id)
     ID.setType(2);  /* Disk */
     ID.setID(id - DISKID);
   }
-  else if(id >= BULGEID && id < DARKMATTERID)
+  else if(id >= BULGEID)
   {
     ID.setType(1);  /* Bulge */
     ID.setID(id - BULGEID);
   }
-  else if (id >= DARKMATTERID)
+  else if (id < DISKID)
   {
     ID.setType(0);  /* DM */
     ID.setID(id - DARKMATTERID);

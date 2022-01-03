@@ -85,9 +85,9 @@ typedef unsigned long long ullong; //ulonglong1
  *
  */
 
-#define DARKMATTERID  3000000000000000000
-#define DISKID        0
-#define BULGEID       2000000000000000000
+#define DARKMATTERID  0
+#define DISKID        1000000000000000000
+#define BULGEID       3000000000000000000
 
 
 
